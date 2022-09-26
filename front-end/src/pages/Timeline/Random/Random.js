@@ -1,23 +1,18 @@
-import useRecommendation from "../../../hooks/api/useRecommendation";
+import React from 'react';
+import useRecommendation from '../../../hooks/api/useRecommendation';
 
-import Recommendation from "../../../components/Recommendation";
+import Recommendation from '../../../components/Recommendation';
 
 export default function Random() {
-  const { recommendation, updateRecommendation } = useRecommendation();
+    const { recommendation, updateRecommendation } = useRecommendation();
 
-  const handleUpdate = () => {
-    updateRecommendation(recommendation.id);
-  }
+    const handleUpdate = () => {
+        updateRecommendation(recommendation.id);
+    };
 
-  if (!recommendation) {
-    return <div>Loading...</div>;
-  }
+    if (!recommendation) {
+        return <div>Loading...</div>;
+    }
 
-  return (
-    <Recommendation
-      {...recommendation}
-      onUpvote={handleUpdate}
-      onDownvote={handleUpdate}
-    />
-  );
+    return <Recommendation {...recommendation} onUpvote={handleUpdate} onDownvote={handleUpdate} />;
 }
