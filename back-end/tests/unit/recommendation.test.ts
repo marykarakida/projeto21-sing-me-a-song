@@ -269,4 +269,25 @@ describe('recommendation service', () => {
             });
         });
     });
+
+    describe('getTop fn', () => {
+        describe('given that there are music recommendations', () => {
+            it('should return the recommendation', async () => {
+                const amount = faker.datatype.number(4);
+                const randomRecommendations = recommendationFactory.getRandomRecommendations(4);
+
+                jest.spyOn(recommendationRepository, 'getAmountByScore').mockResolvedValueOnce(
+                    randomRecommendations.sort((a, b) => b.id - a.id).slice(0, amount)
+                );
+
+                const result = await recommendationService.getTop(amount);
+
+                expect(recommendationRepository.getAmountByScore).toBeCalledTimes(1);
+
+                expect(recommendationRepository.getAmountByScore).toBeCalledWith(amount);
+
+                expect(result).toHaveLength(amount);
+            });
+        });
+    });
 });
