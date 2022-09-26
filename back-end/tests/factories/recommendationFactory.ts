@@ -17,10 +17,24 @@ export function getCreatedRecommendation(recommendationData: TRecommendationInse
     return { id: faker.datatype.number(), score, ...recommendationData };
 }
 
+export function getRandomRecommendations(length: number) {
+    const recommendations = Array.from({ length }).map((_, index) => ({
+        id: index + 1,
+        score: index % 2 === 0 ? faker.datatype.number({ min: -5, max: 10 }) : faker.datatype.number({ min: 11 }),
+        ...createValidRecommendation(),
+    }));
+
+    return recommendations;
+}
+
 export async function insertRecommendation(recommendation: TRecommendationInsertData): Promise<Recommendation> {
     return prisma.recommendation.create({ data: recommendation });
 }
 
 export async function insertUnpopularRecomendation(recommendation: TRecommendationInsertData): Promise<Recommendation> {
     return prisma.recommendation.create({ data: { ...recommendation, score: -5 } });
+}
+
+export async function insertManyRecommendation(recomendations: Recommendation[]) {
+    await prisma.recommendation.createMany({ data: recomendations });
 }

@@ -109,4 +109,91 @@ describe('/recommendations', () => {
             });
         });
     });
+
+    describe('GET /recommendations', () => {
+        describe('given that no recommendation exists', () => {
+            it('should return a empty and return status code 200', async () => {
+                const result = await server.get(`/recommendations`);
+
+                expect(result.status).toBe(200);
+                expect(result.body.length).toBe(0);
+            });
+        });
+
+        describe('given that more than 10 recommendation exists', () => {
+            it('should return a list containing the 10 most recent recommendations and return status code 200', async () => {
+                const recommendations = Array.from({ length: 11 }).map((_, index) => ({
+                    id: index + 1,
+                    score: 0,
+                    ...recommendationFactory.createValidRecommendation(),
+                }));
+                await recommendationFactory.insertManyRecommendation(recommendations);
+
+                const result = await server.get(`/recommendations`);
+
+                expect(result.status).toBe(200);
+                expect(result.body.length).toBe(10);
+                expect(result.body).toEqual(recommendations.sort((a, b) => b.id - a.id).slice(0, 10));
+            });
+        });
+    });
+
+    describe('GET /recommendations/:id', () => {
+        describe('given that the recommendation does exist', () => {
+            it('should return the recommendation data object and return status code 200', async () => {
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const insertedRecommendation = await recommendationFactory.insertRecommendation(validRecommendation);
+
+                const result = await server.get(`/recommendations/${insertedRecommendation.id}`);
+
+                expect(result.status).toBe(200);
+                expect(result.body).toEqual(insertedRecommendation);
+            });
+        });
+
+        describe('given that the recommendation does not exist', () => {
+            it('should return status code 404', async () => {
+                const result = await server.get('/recommendations/0');
+
+                expect(result.status).toBe(404);
+            });
+        });
+    });
+
+    describe('GET /recommendations/random', () => {
+        describe('given that music recommendations does exist', () => {
+            it('should return a random music recommendation and return status code 200', async () => {
+                const recommendations = recommendationFactory.getRandomRecommendations(4);
+                await recommendationFactory.insertManyRecommendation(recommendations);
+
+                const result = await server.get('/recommendations/random');
+
+                expect(result.status).toBe(200);
+                expect(recommendations).toContainEqual(result.body);
+            });
+        });
+
+        describe('given that there are no music recommendation', () => {
+            it('should return status code 404', async () => {
+                const result = await server.get('/recommendations/random');
+
+                expect(result.status).toBe(404);
+            });
+        });
+    });
+
+    describe('GET /recommendations/top/:amount', () => {
+        describe('given that music recommendations does exist', () => {
+            it('should return a list of the top music recommendations limited by amount and return status code 200', async () => {
+                const amount = 2;
+                const recommendations = recommendationFactory.getRandomRecommendations(4);
+                await recommendationFactory.insertManyRecommendation(recommendations);
+
+                const result = await server.get(`/recommendations/top/${amount}`);
+
+                expect(result.status).toBe(200);
+                expect(result.body).toHaveLength(amount);
+            });
+        });
+    });
 });
