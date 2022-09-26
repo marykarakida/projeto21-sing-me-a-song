@@ -3,6 +3,7 @@ import { jest } from '@jest/globals';
 import { recommendationService } from '../../src/services/recommendationsService';
 import { recommendationRepository } from '../../src/repositories/recommendationRepository';
 import * as recommendationFactory from '../factories/recommendationFactory';
+import { faker } from '@faker-js/faker';
 
 describe('recommendation service', () => {
     beforeEach(async () => {
@@ -190,6 +191,81 @@ describe('recommendation service', () => {
                 expect(recommendationRepository.find).toBeCalledWith(existingRecommendation.id);
 
                 expect(result).toEqual(existingRecommendation);
+            });
+        });
+    });
+
+    describe('getRandom fn', () => {
+        describe("given that there are musics with score greater and less than 10 and 'random' is less than 0.7", () => {
+            it('should return a random music with score greater than 10', async () => {
+                const randomRecommendations = recommendationFactory.getRandomRecommendations(4);
+
+                jest.spyOn(Math, 'random').mockReturnValue(faker.datatype.number({ max: 0.6, precision: 0.1 }));
+                jest.spyOn(recommendationRepository, 'findAll').mockResolvedValueOnce(
+                    randomRecommendations.filter(({ id }) => id % 2 === 0)
+                );
+
+                const result = await recommendationService.getRandom();
+
+                expect(recommendationRepository.findAll).toBeCalledTimes(1);
+
+                expect(recommendationRepository.findAll).toBeCalledWith({ score: 10, scoreFilter: 'gt' });
+
+                expect(randomRecommendations).toContainEqual(result);
+
+                expect(result.score).toBeGreaterThan(10);
+            });
+        });
+
+        describe("given that there are musics with score greater and less than 10 and 'random' is greater than 0.7", () => {
+            it('should return a random music with score less or equal than 10', async () => {
+                const randomRecommendations = recommendationFactory.getRandomRecommendations(4);
+
+                jest.spyOn(Math, 'random').mockReturnValue(faker.datatype.number({ min: 0.8, max: 1, precision: 0.1 }));
+                jest.spyOn(recommendationRepository, 'findAll').mockResolvedValueOnce(
+                    randomRecommendations.filter(({ id }) => id % 2 === 1)
+                );
+
+                const result = await recommendationService.getRandom();
+
+                expect(recommendationRepository.findAll).toBeCalledTimes(1);
+
+                expect(recommendationRepository.findAll).toBeCalledWith({ score: 10, scoreFilter: 'lte' });
+
+                expect(randomRecommendations).toContainEqual(result);
+
+                expect(result.score).toBeLessThanOrEqual(10);
+            });
+        });
+
+        describe('given that there are only music recommendations greater than 10 or music recommendations less or equal than 10', () => {
+            it('should return a random music', async () => {
+                const remainder = faker.datatype.number(1);
+                const randomRecommendations = recommendationFactory.getRandomRecommendations(4);
+                jest.spyOn(Math, 'random').mockReturnValue(faker.datatype.number({ max: 1, precision: 0.1 }));
+                jest.spyOn(recommendationRepository, 'findAll').mockResolvedValueOnce([]);
+                jest.spyOn(recommendationRepository, 'findAll').mockResolvedValueOnce(
+                    randomRecommendations.filter(({ id }) => id % 2 === remainder)
+                );
+
+                const result = await recommendationService.getRandom();
+
+                expect(recommendationRepository.findAll).toBeCalledTimes(2);
+
+                expect(randomRecommendations).toContainEqual(result);
+            });
+        });
+
+        describe('given that there are no music recommendations', () => {
+            it('should throw a not found error', async () => {
+                jest.spyOn(Math, 'random').mockReturnValue(faker.datatype.number({ max: 1, precision: 0.1 }));
+                jest.spyOn(recommendationRepository, 'findAll').mockResolvedValue([]);
+
+                const result = recommendationService.getRandom();
+
+                expect(recommendationRepository.findAll).toBeCalledTimes(1);
+
+                expect(result).rejects.toEqual({ type: 'not_found', message: '' });
             });
         });
     });
