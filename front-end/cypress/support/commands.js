@@ -10,8 +10,22 @@
 //
 //
 // -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
+Cypress.Commands.add('resetDatabase', () => {
+    cy.request('POST', 'http://localhost:5000/e2e/reset', {});
+});
+
+Cypress.Commands.add('createRecommendation', (recommendation) => {
+    cy.request('POST', 'http://localhost:5000/recommendations', recommendation).then(() => {});
+});
+
+Cypress.Commands.add('createAndDownvoteRecommendation', (recommendation) => {
+    cy.request('POST', 'http://localhost:5000/recommendations', recommendation).then(() => {
+        Array.from({ length: 5 }).forEach(() => {
+            cy.request('POST', 'http://localhost:5000/recommendations/1/downvote', recommendation);
+        });
+    });
+});
+
 //
 // -- This is a child command --
 // Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
