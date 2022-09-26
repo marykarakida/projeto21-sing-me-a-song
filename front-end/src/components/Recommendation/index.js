@@ -1,3 +1,3 @@
-import Recommendation from "./Recommendation";
+import Recommendation from './Recommendation';
 
 export default Recommendation;

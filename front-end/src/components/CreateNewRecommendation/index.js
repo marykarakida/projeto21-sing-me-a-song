@@ -1,3 +1,3 @@
-import CreateNewRecommendation from "./CreateNewRecommendation";
+import CreateNewRecommendation from './CreateNewRecommendation';
 
 export default CreateNewRecommendation;
