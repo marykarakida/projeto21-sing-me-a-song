@@ -24,3 +24,7 @@ export async function insertRecommendation(recommendation: TRecommendationInsert
 export async function insertUnpopularRecomendation(recommendation: TRecommendationInsertData): Promise<Recommendation> {
     return prisma.recommendation.create({ data: { ...recommendation, score: -5 } });
 }
+
+export async function insertManyRecommendation(recomendations: Recommendation[]) {
+    await prisma.recommendation.createMany({ data: recomendations });
+}

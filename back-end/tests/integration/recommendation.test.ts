@@ -109,4 +109,32 @@ describe('/recommendations', () => {
             });
         });
     });
+
+    describe('GET /recommendations', () => {
+        describe('given that no recommendation exists', () => {
+            it('should return a empty and return status code 200', async () => {
+                const result = await server.get(`/recommendations`);
+
+                expect(result.status).toBe(200);
+                expect(result.body.length).toBe(0);
+            });
+        });
+
+        describe('given that more than 10 recommendation exists', () => {
+            it('should return a list containing the 10 most recent recommendations and return status code 200', async () => {
+                const recommendations = Array.from({ length: 11 }).map((_, index) => ({
+                    id: index + 1,
+                    score: 0,
+                    ...recommendationFactory.createValidRecommendation(),
+                }));
+                await recommendationFactory.insertManyRecommendation(recommendations);
+
+                const result = await server.get(`/recommendations`);
+
+                expect(result.status).toBe(200);
+                expect(result.body.length).toBe(10);
+                expect(result.body).toEqual(recommendations.sort((a, b) => b.id - a.id).slice(0, 10));
+            });
+        });
+    });
 });
