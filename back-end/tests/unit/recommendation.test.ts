@@ -154,8 +154,8 @@ describe('recommendation service', () => {
     });
 
     describe('get fn', () => {
-        describe('given that recommendation data is valid', () => {
-            it('should create a new recommendation', async () => {
+        describe('given that recommendations exist', () => {
+            it('should return a list with recomendations', async () => {
                 const recommendations = Array.from({ length: 10 }).map((_, index) => ({
                     id: index + 1,
                     score: 0,
@@ -171,6 +171,25 @@ describe('recommendation service', () => {
                 expect(recommendationRepository.findAll).toBeCalledWith();
 
                 expect(result).toEqual(recommendations);
+            });
+        });
+    });
+
+    describe('getById fn', () => {
+        describe('given that the recommendation does exist', () => {
+            it('should return the recommendation', async () => {
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const existingRecommendation = recommendationFactory.getCreatedRecommendation(validRecommendation);
+
+                jest.spyOn(recommendationRepository, 'find').mockResolvedValueOnce(existingRecommendation);
+
+                const result = await recommendationService.getById(existingRecommendation.id);
+
+                expect(recommendationRepository.find).toBeCalledTimes(1);
+
+                expect(recommendationRepository.find).toBeCalledWith(existingRecommendation.id);
+
+                expect(result).toEqual(existingRecommendation);
             });
         });
     });
