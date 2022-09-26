@@ -137,4 +137,26 @@ describe('/recommendations', () => {
             });
         });
     });
+
+    describe('GET /recommendations/:id', () => {
+        describe('given that the recommendation does exist', () => {
+            it('should return the recommendation data object and return status code 200', async () => {
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const insertedRecommendation = await recommendationFactory.insertRecommendation(validRecommendation);
+
+                const result = await server.get(`/recommendations/${insertedRecommendation.id}`);
+
+                expect(result.status).toBe(200);
+                expect(result.body).toEqual(insertedRecommendation);
+            });
+        });
+
+        describe('given that the recommendation does not exist', () => {
+            it('should return status code 404', async () => {
+                const result = await server.get('/recommendations/0');
+
+                expect(result.status).toBe(404);
+            });
+        });
+    });
 });
