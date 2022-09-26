@@ -181,4 +181,19 @@ describe('/recommendations', () => {
             });
         });
     });
+
+    describe('GET /recommendations/top/:amount', () => {
+        describe('given that music recommendations does exist', () => {
+            it('should return a list of the top music recommendations limited by amount and return status code 200', async () => {
+                const amount = 2;
+                const recommendations = recommendationFactory.getRandomRecommendations(4);
+                await recommendationFactory.insertManyRecommendation(recommendations);
+
+                const result = await server.get(`/recommendations/top/${amount}`);
+
+                expect(result.status).toBe(200);
+                expect(result.body).toHaveLength(amount);
+            });
+        });
+    });
 });
