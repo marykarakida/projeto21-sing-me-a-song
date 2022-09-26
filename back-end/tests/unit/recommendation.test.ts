@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 import { recommendationService } from '../../src/services/recommendationsService';
 import { recommendationRepository } from '../../src/repositories/recommendationRepository';
-import { createValidRecommendation, getCreatedRecommendation } from '../factories/recommendationFactory';
+import * as recommendationFactory from '../factories/recommendationFactory';
 
 describe('recommendation service', () => {
     beforeEach(async () => {
@@ -13,7 +13,7 @@ describe('recommendation service', () => {
     describe('insert fn', () => {
         describe('given that recommendation data is valid', () => {
             it('should create a new recommendation', async () => {
-                const validRecommendation = createValidRecommendation();
+                const validRecommendation = recommendationFactory.createValidRecommendation();
 
                 jest.spyOn(recommendationRepository, 'findByName').mockResolvedValueOnce(null);
                 jest.spyOn(recommendationRepository, 'create').mockResolvedValueOnce(null);
@@ -30,8 +30,8 @@ describe('recommendation service', () => {
 
         describe('given that recommendation name was already taken', () => {
             it('should not allow to create duplicated recommendation', async () => {
-                const validRecommendation = createValidRecommendation();
-                const existingRecommendation = getCreatedRecommendation(validRecommendation);
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const existingRecommendation = recommendationFactory.getCreatedRecommendation(validRecommendation);
 
                 jest.spyOn(recommendationRepository, 'findByName').mockResolvedValueOnce(existingRecommendation);
                 jest.spyOn(recommendationRepository, 'create').mockResolvedValueOnce(null);
@@ -51,8 +51,8 @@ describe('recommendation service', () => {
     describe('upvote fn', () => {
         describe('given that an existing recommendation is upvoted', () => {
             it("should increase recommendation's score by 1", async () => {
-                const validRecommendation = createValidRecommendation();
-                const existingRecommendation = getCreatedRecommendation(validRecommendation);
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const existingRecommendation = recommendationFactory.getCreatedRecommendation(validRecommendation);
 
                 jest.spyOn(recommendationRepository, 'find').mockResolvedValueOnce(existingRecommendation);
                 jest.spyOn(recommendationRepository, 'updateScore').mockResolvedValue({
@@ -89,8 +89,8 @@ describe('recommendation service', () => {
     describe('downvote fn', () => {
         describe('given that an existing recommendation is downvoted', () => {
             it("should decrease recommendation's score by 1", async () => {
-                const validRecommendation = createValidRecommendation();
-                const existingRecommendation = getCreatedRecommendation(validRecommendation);
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const existingRecommendation = recommendationFactory.getCreatedRecommendation(validRecommendation);
 
                 jest.spyOn(recommendationRepository, 'find').mockResolvedValueOnce(existingRecommendation);
                 jest.spyOn(recommendationRepository, 'updateScore').mockResolvedValueOnce({
@@ -130,8 +130,8 @@ describe('recommendation service', () => {
 
         describe('given that a recommendation with less than -5 score is downvoted', () => {
             it('should delete the recommendation', async () => {
-                const validRecommendation = createValidRecommendation();
-                const existingRecommendation = getCreatedRecommendation(validRecommendation, -5);
+                const validRecommendation = recommendationFactory.createValidRecommendation();
+                const existingRecommendation = recommendationFactory.getCreatedRecommendation(validRecommendation, -5);
 
                 jest.spyOn(recommendationRepository, 'find').mockResolvedValueOnce(existingRecommendation);
                 jest.spyOn(recommendationRepository, 'updateScore').mockResolvedValueOnce({
@@ -149,6 +149,28 @@ describe('recommendation service', () => {
                 expect(recommendationRepository.find).toHaveBeenCalledWith(existingRecommendation.id);
                 expect(recommendationRepository.updateScore).toBeCalledWith(existingRecommendation.id, 'decrement');
                 expect(recommendationRepository.remove).toBeCalledWith(existingRecommendation.id);
+            });
+        });
+    });
+
+    describe('get fn', () => {
+        describe('given that recommendation data is valid', () => {
+            it('should create a new recommendation', async () => {
+                const recommendations = Array.from({ length: 10 }).map((_, index) => ({
+                    id: index + 1,
+                    score: 0,
+                    ...recommendationFactory.createValidRecommendation(),
+                }));
+
+                jest.spyOn(recommendationRepository, 'findAll').mockResolvedValueOnce(recommendations);
+
+                const result = await recommendationService.get();
+
+                expect(recommendationRepository.findAll).toBeCalledTimes(1);
+
+                expect(recommendationRepository.findAll).toBeCalledWith();
+
+                expect(result).toEqual(recommendations);
             });
         });
     });
