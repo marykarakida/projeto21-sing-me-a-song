@@ -159,4 +159,26 @@ describe('/recommendations', () => {
             });
         });
     });
+
+    describe('GET /recommendations/random', () => {
+        describe('given that music recommendations does exist', () => {
+            it('should return a random music recommendation and return status code 200', async () => {
+                const recommendations = recommendationFactory.getRandomRecommendations(4);
+                await recommendationFactory.insertManyRecommendation(recommendations);
+
+                const result = await server.get('/recommendations/random');
+
+                expect(result.status).toBe(200);
+                expect(recommendations).toContainEqual(result.body);
+            });
+        });
+
+        describe('given that there are no music recommendation', () => {
+            it('should return status code 404', async () => {
+                const result = await server.get('/recommendations/random');
+
+                expect(result.status).toBe(404);
+            });
+        });
+    });
 });
